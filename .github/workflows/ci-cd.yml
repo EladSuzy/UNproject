@@ -57,10 +57,10 @@ jobs:
         service:
           - name: api-server
             path: random-item-purchase-system/api-server
-            image: ${{ env.API_IMAGE }}
+            image: docker.io/suzye/api-server
           - name: web-server
             path: random-item-purchase-system/web-server
-            image: ${{ env.WEB_IMAGE }}
+            image: docker.io/suzye/web-server
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
@@ -121,8 +121,8 @@ jobs:
       - name: Update images to SHA tag
         run: |
           SHA_TAG=${GITHUB_SHA}
-          kubectl set image deploy/api-server api-server=${{ env.API_IMAGE }}:${SHA_TAG}
-          kubectl set image deploy/web-server web-server=${{ env.WEB_IMAGE }}:${SHA_TAG}
+          kubectl set image deploy/api-server api-server=docker.io/suzye/api-server:${SHA_TAG}
+          kubectl set image deploy/web-server web-server=docker.io/suzye/web-server:${SHA_TAG}
 
       - name: Wait for rollout
         run: |
