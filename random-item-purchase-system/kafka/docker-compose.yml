@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  redpanda:
+    image: redpandadata/redpanda:latest
+    ports:
+      - "9092:9092"
+      - "8081:8081"
+      - "9644:9644"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - "1G"
+      - --mode
+      - development
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:9092
+      - --pandaproxy-addr
+      - internal://0.0.0.0:8081,external://0.0.0.0:8081
+      - --advertise-pandaproxy-addr
+      - internal://redpanda:8081,external://localhost:8081
+      - --rpc-addr
+      - 0.0.0.0:33145
+      - --advertise-rpc-addr
+      - redpanda:33145
+      - --set redpanda.enable_idempotence=true
+      - --set redpanda.auto_create_topics_enabled=true
+
+volumes:
+  redpanda_data:

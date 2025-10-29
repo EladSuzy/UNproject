@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+  labels:
+    app: web-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-server
+  template:
+    metadata:
+      labels:
+        app: web-server
+    spec:
+      containers:
+        - name: web-server
+          image: suzye/web-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+          env:
+            - name: API_SERVER_URL
+              value: http://api-server:3000
+            - name: KAFKA_BROKER
+              value: kafka:9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-server
+spec:
+  ports:
+    - port: 4000
+      targetPort: 4000
+  selector:
+    app: web-server
+  type: ClusterIP

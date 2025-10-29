@@ -1,0 +1,25 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kafka-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: api-server
+    kind: Deployment
+  pollingInterval: 15  # seconds
+  cooldownPeriod: 30   # seconds
+  minReplicaCount: 1
+  maxReplicaCount: 3
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: redpanda.default.svc.cluster.local:9092
+        consumerGroup: purchase-group
+        topic: USER_PURCHASES
+        lagThreshold: "5"
+        activationLagThreshold: "1"
+        # Optional: Specify auth if needed
+        # sasl: plain
+        # username: user
+        # password: password
