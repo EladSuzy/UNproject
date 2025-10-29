@@ -10,8 +10,7 @@ const consumer = kafka.consumer({ groupId: 'purchase-group' });
 
 export const consumeMessages = async () => {
   await consumer.connect();
-  // do we need to remove the fromBeginning?
-  await consumer.subscribe({ topic: 'USER_PURCHASES', fromBeginning: true });
+  await consumer.subscribe({ topic: 'USER_PURCHASES' });
 
   await consumer.run({
     eachMessage: async ({ message }) => {
