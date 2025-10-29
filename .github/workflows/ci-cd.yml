@@ -69,8 +69,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ vars.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract Docker metadata
         id: meta
@@ -92,38 +92,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
-
-  deploy:
-    name: Deploy to Kubernetes (optional)
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'v1.29.0'
-
-      - name: Configure kubeconfig
-        run: |
-          echo "${KUBE_CONFIG_DATA}" | base64 -d > $HOME/.kube/config
-        env:
-          KUBE_CONFIG_DATA: ${{ vars.KUBE_CONFIG_DATA }}
-
-      - name: Apply manifests
-        working-directory: random-item-purchase-system/k8s
-        run: kubectl apply -f .
-
-      - name: Update images to SHA tag
-        run: |
-          SHA_TAG=${GITHUB_SHA}
-          kubectl set image deploy/api-server api-server=docker.io/suzye/api-server:${SHA_TAG}
-          kubectl set image deploy/web-server web-server=docker.io/suzye/web-server:${SHA_TAG}
-
-      - name: Wait for rollout
-        run: |
-          kubectl rollout status deploy/api-server --timeout=180s
-          kubectl rollout status deploy/web-server --timeout=180s
