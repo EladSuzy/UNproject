@@ -1,0 +1,130 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: docker.io
+  DOCKERHUB_NAMESPACE: suzye
+  API_IMAGE: docker.io/suzye/api-server
+  WEB_IMAGE: docker.io/suzye/web-server
+
+jobs:
+  test:
+    name: Install, build, and test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: api-server
+            path: random-item-purchase-system/api-server
+          - name: web-server
+            path: random-item-purchase-system/web-server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: ${{ matrix.service.path }}/package-lock.json
+
+      - name: Install
+        working-directory: ${{ matrix.service.path }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ matrix.service.path }}
+        run: npm run build
+
+      - name: Test
+        working-directory: ${{ matrix.service.path }}
+        run: npm test --if-present
+
+  build-and-push:
+    name: Build and push Docker images (Docker Hub)
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        service:
+          - name: api-server
+            path: random-item-purchase-system/api-server
+            image: ${{ env.API_IMAGE }}
+          - name: web-server
+            path: random-item-purchase-system/web-server
+            image: ${{ env.WEB_IMAGE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.service.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.path }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' && secrets.KUBE_CONFIG_DATA != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${KUBE_CONFIG_DATA}" | base64 -d > $HOME/.kube/config
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+
+      - name: Apply manifests
+        working-directory: random-item-purchase-system/k8s
+        run: |
+          kubectl apply -f .
+
+      - name: Update images to SHA tag
+        run: |
+          SHA_TAG=${GITHUB_SHA}
+          kubectl set image deploy/api-server api-server=${{ env.API_IMAGE }}:${SHA_TAG}
+          kubectl set image deploy/web-server web-server=${{ env.WEB_IMAGE }}:${SHA_TAG}
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deploy/api-server --timeout=180s
+          kubectl rollout status deploy/web-server --timeout=180
