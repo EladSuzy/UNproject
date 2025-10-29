@@ -38,7 +38,7 @@ jobs:
 
       - name: Install
         working-directory: ${{ matrix.service.path }}
-        run: npm ci
+        run: npm install
 
       - name: Build
         working-directory: ${{ matrix.service.path }}
