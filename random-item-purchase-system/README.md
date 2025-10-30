@@ -20,29 +20,29 @@
    
   - Build API Server:
 
-   cd api-server
+     cd api-server
 
-   docker build -t suzye/api-server .
+     docker build -t suzye/api-server .
 
-   docker push suzye/api-server
+     docker push suzye/api-server
 
   - Build Web Server:
 
-   cd ../web-server
+     cd ../web-server
 
-   docker build -t suzye/web-server .
+     docker build -t suzye/web-server .
 
-   docker push suzye/web-server
+     docker push suzye/web-server
 
 # 3. Deploy to Kubernetes:
    
   - Deploy core services:
 
-   kubectl apply -f k8s/
+     kubectl apply -f k8s/
 
   - Deploy KEDA scalers:
 
-   kubectl apply -f k8s/keda/
+     kubectl apply -f k8s/keda/
    
 
 ## Components
@@ -91,7 +91,9 @@
   - Make a purchase
   - Body: { username: string, userId: string, price: number }
   - Returns: { message: string }
-  Example:
+
+Example:
+
   curl -i -X POST "http://localhost:8080/api/buy"   -H "Host: purchase.local"   -H "Content-Type: application/json"   -d '{"username":"elad","userId":"555","price":12.00}'
 
 - GET /api/user/:userId/purchases
@@ -102,8 +104,10 @@
 - GET /api/purchases?userId=:userId
   - Get all purchases for a specific user
   - Returns: Array of purchases with timestamps
+  
   Example:
-  curl -s "http://localhost:8080/api/getAllUserBuys/555"
+  
+    curl -s "http://localhost:8080/api/getAllUserBuys/555"
 
 ## Minikube
 
@@ -129,15 +133,15 @@ The system uses KEDA (Kubernetes Event-driven Autoscaling) to automatically scal
 
 Check HorizontalPodAutoscaler status:
 
-kubectl get hpa
+  kubectl get hpa
 
 Check current pod count:
 
-kubectl get pods -l app=api-server
+  kubectl get pods -l app=api-server
 
 View scaling events:
 
-kubectl describe ScaledObject kafka-scaler
+  kubectl describe ScaledObject kafka-scaler
 
 - Testing Auto-scaling
 
@@ -168,11 +172,11 @@ kubectl describe ScaledObject kafka-scaler
    
 4. List KEDA resources:
 
-kubectl get scaledobjects
+   kubectl get scaledobjects
 
-kubectl get hpa
+   kubectl get hpa
 
-kubectl get -n keda all
+   kubectl get -n keda all
 
 # CI-CD
 
