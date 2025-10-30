@@ -1,36 +1,47 @@
 # Random Item Purchase System
 
-1. Install KEDA:
+# 1. Install KEDA:
    
-   # Add KEDA Helm repository
+  - Add KEDA Helm repository:
+
    helm repo add kedacore https://kedacore.github.io/charts
    helm repo update
 
-   # Create KEDA namespace
+  - Create KEDA namespace:
+
    kubectl create namespace keda
 
-   # Install KEDA Helm chart
+  - Install KEDA Helm chart:
+
    helm install keda kedacore/keda --namespace keda
    
 
-2. Build Docker images and Push to DockerHub:
+# 2. Build Docker images and Push to DockerHub:
    
-   # Build API Server
+  - Build API Server:
+
    cd api-server
+
    docker build -t suzye/api-server .
+
    docker push suzye/api-server
 
-   # Build Web Server
+  - Build Web Server:
+
    cd ../web-server
+
    docker build -t suzye/web-server .
+
    docker push suzye/web-server
 
-3. Deploy to Kubernetes:
+# 3. Deploy to Kubernetes:
    
-   # Deploy core services
+  - Deploy core services:
+
    kubectl apply -f k8s/
 
-   # Deploy KEDA scalers
+  - Deploy KEDA scalers:
+
    kubectl apply -f k8s/keda/
    
 
@@ -95,40 +106,52 @@
   curl -s "http://localhost:8080/api/getAllUserBuys/555"
 
 ## Minikube
-there is an implemantation of ingress which is a better solution:
+
+For K8s 
+
+There is an implemantation of ingress which is a better solution:
+
 minikube addons enable ingress
+
 minikube tunnel
+
 kubectl -n ingress-nginx patch svc ingress-nginx-controller -p '{"spec": {"type": "LoadBalancer"}}'
+
 I used for testing the following way:
+
 kubectl port-forward svc/web-server 8080:4000
-minikube addons enable metrics-server
 
 ### Keda
 
 The system uses KEDA (Kubernetes Event-driven Autoscaling) to automatically scale the API server based on Kafka message lag.
 
-Monitor the scaling behavior:
-```bash
-# Check HorizontalPodAutoscaler status
+- Monitor the scaling behavior:
+
+Check HorizontalPodAutoscaler status:
+
 kubectl get hpa
 
-# Check current pod count
+Check current pod count:
+
 kubectl get pods -l app=api-server
 
-# View scaling events
-kubectl describe ScaledObject kafka-scaler
-```
+View scaling events:
 
-### Testing Auto-scaling
+kubectl describe ScaledObject kafka-scaler
+
+- Testing Auto-scaling
 
 1. Generate load:
-   scale.sh script is a loading test
+
+   scale.sh script is for loading test
 
 2. Monitor scaling:
-   # Watch pods scaling up/down
+
+   Watch pods scaling up/down:
+
    kubectl get pods -l app=api-server -w
 
-### Troubleshooting
+- Troubleshooting
 
 1. Check KEDA logs:
 
@@ -143,35 +166,20 @@ kubectl describe ScaledObject kafka-scaler
    
    kubectl exec -it kafka-0 -- kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group purchase-group
    
-# List KEDA resources
+4. List KEDA resources:
+
 kubectl get scaledobjects
+
 kubectl get hpa
+
 kubectl get -n keda all
-
-# Describe specific scaler
-
-kubectl describe scaledobject kafka-scaler
-
-# Check KEDA operator logs
-
-kubectl logs -n keda deploy/keda-operator --tail=50
-kubectl logs -n keda deploy/keda-operator-metrics-apiserver --tail=50
-
-# Events for specific namespace
-
-kubectl get events --sort-by=.metadata.creationTimestamp | grep -i keda
-
-# Check scaled deployment status
-
-kubectl get deploy api-server
-kubectl describe deploy api-server | grep -A 10 Events
 
 # CI-CD
 
 Github action workflow (ci-cd.yml):
 
-1.Builds api-server & web-server 
+- Builds api-server & web-server 
 
-2.Provide tests for both services
+- Provide tests for both services
 
-3.Push the images to DockerHub
+- Push the images to DockerHub
