@@ -125,21 +125,21 @@ I used for testing the following way:
 
 kubectl port-forward svc/web-server 8080:4000
 
-### Keda
+### KEDA
 
 The system uses KEDA (Kubernetes Event-driven Autoscaling) to automatically scale the API server based on Kafka message lag.
 
 - Monitor the scaling behavior:
 
-Check HorizontalPodAutoscaler status:
+  Check HorizontalPodAutoscaler status:
 
   kubectl get hpa
 
-Check current pod count:
+  Check current pod count:
 
   kubectl get pods -l app=api-server
 
-View scaling events:
+  View scaling events:
 
   kubectl describe ScaledObject kafka-scaler
 
