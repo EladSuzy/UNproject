@@ -7,7 +7,7 @@ spec:
   scaleTargetRef:
     name: api-server
     kind: Deployment
-  pollingInterval: 15  # seconds
+  pollingInterval: 5  # seconds
   cooldownPeriod: 30   # seconds
   minReplicaCount: 1
   maxReplicaCount: 3
@@ -17,7 +17,7 @@ spec:
         bootstrapServers: redpanda.default.svc.cluster.local:9092
         consumerGroup: purchase-group
         topic: USER_PURCHASES
-        lagThreshold: "5"
+        lagThreshold: "1"
         activationLagThreshold: "1"
         # Optional: Specify auth if needed
         # sasl: plain
