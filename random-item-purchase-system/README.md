@@ -96,6 +96,10 @@ Example:
 
   curl -i -X POST "http://localhost:8080/api/buy"   -H "Host: purchase.local"   -H "Content-Type: application/json"   -d '{"username":"elad","userId":"555","price":12.00}'
 
+  when using ingress:
+
+  curl -i -X POST "http://127.0.0.1:80/api/buy"   -H "Host: purchase.local"   -H "Content-Type: application/json"   -d '{"username":"elad","userId":"555","price":12.00}'
+
 - GET /api/user/:userId/purchases
   - Get user's purchase history
   - Returns: Array of purchases
@@ -108,6 +112,10 @@ Example:
   Example:
   
     curl -s "http://localhost:8080/api/getAllUserBuys/555"
+    
+    when using ingress:
+
+    curl -s -H "Host: purchase.local" "http://127.0.0.1/api/getAllUserBuys/555"
 
 ## Minikube
 
