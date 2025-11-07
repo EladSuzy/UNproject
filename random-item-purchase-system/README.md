@@ -176,7 +176,7 @@ The system uses KEDA (Kubernetes Event-driven Autoscaling) to automatically scal
 
 3. Monitor Kafka metrics:
    
-   kubectl exec -it kafka-0 -- kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group purchase-group
+   kubectl exec -it redpanda-0 -- rpk group describe purchase-group --brokers localhost:9092
    
 4. List KEDA resources:
 
@@ -195,3 +195,16 @@ Github action workflow (ci-cd.yml):
 - Provide tests for both services
 
 - Push the images to DockerHub
+
+# Scripts
+
+- Keda loading test:
+  
+  ./scale.sh
+
+- clean-mongo:
+
+  Drop the purchases DB > ./clean-mongo.sh --drop-db
+
+  Wipe specific collections > ./clean-mongo.sh --collections purchases
+  
