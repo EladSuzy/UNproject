@@ -84,7 +84,7 @@
 - Kafka for message queuing
 - Kubernetes for container orchestration(Minikube)
 
-## API Endpoints
+## Endpoints
 
 ### Web Server (Customer Facing)
 - POST /api/buy
@@ -100,22 +100,24 @@ Example:
 
   curl -i -X POST "http://127.0.0.1:80/api/buy"   -H "Host: purchase.local"   -H "Content-Type: application/json"   -d '{"username":"elad","userId":"555","price":12.00}'
 
-- GET /api/user/:userId/purchases
+- GET /api/getAllUserBuys/:userId
   - Get user's purchase history
   - Returns: Array of purchases
 
-### API Server (Customer Management)
-- GET /api/purchases?userId=:userId
-  - Get all purchases for a specific user
-  - Returns: Array of purchases with timestamps
-  
-  Example:
+   Example:
   
     curl -s "http://localhost:8080/api/getAllUserBuys/555"
     
     when using ingress:
 
-    curl -s -H "Host: purchase.local" "http://127.0.0.1/api/getAllUserBuys/555"
+    curl -s -H "Host: purchase.local" "http://127.0.0.1/api/getAllUserBuys/555" 
+
+### API Server (Customer Management-for internal use)
+- GET /api/purchases/:userId
+  - Get all purchases for a specific user
+  - Returns: Array of purchases with timestamps
+  
+
 
 ## Minikube
 
